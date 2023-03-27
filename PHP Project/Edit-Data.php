@@ -84,11 +84,13 @@
     Customer<span class="accordion__indicator"></span>
   </button>
   <div class="accordion-panel">
+	
     <p>
-	What Hotel Chain do you want?
-
-	<select name="hotelchainsel">
+	Pick Your Options:
+<form action="" method="post">
+	<select name="hotelsearch[]" multiple>
 	  <option value="">Select...</option>
+	  <option value="True">--HOTEL CHAINS--</option>
 	  <?php
         // A sample product array
 		$result = pg_query($cn, "SELECT * FROM hotel_chain");
@@ -101,95 +103,62 @@
 				}
 			}
         }
-        ?>
-	</select>
-	</p>
-	<p>
-	What Hotel do you want?
-	<select name="hotelsel">
-	  <option value="">Select...</option>
-	  <?php
-        // A sample product array
+		?>
+		<option value="True">--HOTEL ADDRESS--</option>
+		<?php
+		// A sample product array
 		$result = pg_query($cn, "SELECT * FROM hotel");
-		$chains = pg_fetch_all($result);
+		$hotels = pg_fetch_all($result);
         // Iterating through the product array
-        for($i = 0; $i < count($chains); $i++) {
-			foreach ($chains[$i] as $key => $item){
+        for($i = 0; $i < count($hotels); $i++) {
+			foreach ($hotels[$i] as $key => $item){
 				if ($key == 'address'){
 					echo "<option value='$item'>$item</option>";
 				}
 			}
         }
-        ?>
-	</select>
-	</p>
-	<p>
-	<p>
-	How many people do you want the room to hold?
-	<select name="peoplesel">
-	  <option value="">Select...</option>
-	  <?php
-        // A sample product array
+		?>
+		<option value="True">--CAPACITY--</option>
+		<?php
+		// A sample product array
 		$result = pg_query($cn, "SELECT * FROM room");
-		$chains = pg_fetch_all($result);
+		$rooms = pg_fetch_all($result);
         // Iterating through the product array
-        for($i = 0; $i < count($chains); $i++) {
-			foreach ($chains[$i] as $key => $item){
+        for($i = 0; $i < count($rooms); $i++) {
+			foreach ($rooms[$i] as $key => $item){
 				if ($key == 'capacity'){
 					echo "<option value='$item'>$item</option>";
 				}
 			}
         }
         ?>
+		<option value="True">--VIEW--</option>
+		<option value="True">Yes View</option>
+	    <option value="False">No View</option>
 	</select>
-	</p>
-	Do you want a view?
-	<select name="viewsel">
-	  <option value="">Select...</option>
-	  <option value="True">Yes</option>
-	  <option value="False">No</option>
-	  
-	</select>
-	</p>
+	<input type="submit" value="Submit" name="submit">
 	
+</form>
+	</p>
 	<?php
 
-	if(isset($_POST['formSubmit']) )
+	
+	if(isset($_POST['submit']) )
 	{
-	  
-	}
-
-	?>
-	<button onclick="searchFunction()">Search</button>
-
-	<div id="welcomeDiv"  style="display:none;" class="answer_list" > Results: 
-	<?php
-		$rooms = array(
-			0 => array(
-				'hotelid' => '88',
-			),
-		);
-		echo $rooms[0]['hotelid'];
-	?>
-	</div>
-
-	<script>
-	function searchFunction() {
-		<?php
-			$varchain = $_POST['hotelchainsel'];
-			$varhotel = $_POST['hotelsel'];
-			$varpeople = $_POST['peoplesel'];
-			$varview = $_POST['viewsel'];
-			$errorMessage = "";
+		$result = pg_query($cn, "SELECT * FROM room");
+		$rooms = pg_fetch_all($result);
+		foreach ($_POST['hotelsearch'] as $key => $curr){
+			if ($key == "0"){
+			echo $key;
+			echo $curr."<br>";
 			
+			}
 			
-			$result = pg_query($cn, "SELECT * FROM room");
-			$rooms = pg_fetch_all($result);
-			echo $rooms[0]['hotelid'];
-		?>
-		document.getElementById('welcomeDiv').style.display = "block";
+		}
 	}
-	</script>
+	?>
+	
+	
   </div>
   <button class="accordion">
     Edit<span class="accordion__indicator"></span>
