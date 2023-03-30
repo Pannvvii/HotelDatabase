@@ -2,11 +2,20 @@
 CSI2132 Database
 
 Download PHP
-
 Add to path
+enable pgadmin dll
 
-cd to php file
 
-php -S localhost:8000 PHPTest.php
+Open Database in pgAdmin
+Run provided .sql in Query Tool, refresh.
 
-open local host in browser
+
+Open CMD Prompt
+cd to php file location
+
+run the following line:
+php -S localhost:8000 HotelsSite.php
+
+open localhost:8000 in browser
+
+Profit
