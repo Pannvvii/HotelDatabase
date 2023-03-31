@@ -143,7 +143,6 @@ function submitForm() {
 	
 	
 	
-	
 	<br>
 	<br>
   </div>
@@ -227,7 +226,7 @@ function submitForm() {
 					$test = strval($key)."#";
 					$test = $test.strval($item);
 					if((in_array($test, $alreadyA)) == False){
-						echo "<option value='$key#$item)'>$item</option>";
+						echo "<option value='$key#$item'>$item</option>";
 						array_push($alreadyA, $test);
 					}
 				}
@@ -238,18 +237,20 @@ function submitForm() {
 		<option value="sea_view#true">Yes View</option>
 	    <option value="sea_view#false">No View</option>
 	</select>
+	<br>
+	<br>
+	<label for="book">Date to Book:</label>
+	<input type="date" name="book" min="2023-01-01" max="2033-12-31">
+	
 	<input type="submit" value="Submit" name="submit">
 	
+	
 </form>
-<br>
 
 
-<label for="book">Search by Date:</label>
-<form method="post">
-	<input type="date" name="book" min="2023-01-01" max="2033-12-31">
 
-    <input type="submit" name="dateSearch" value="Search"/>
-</form>
+
+
 	</p>
 	<?php
 	if(isset($_POST['submit']) )
@@ -258,8 +259,13 @@ function submitForm() {
 		$rooms = pg_fetch_all($result);
 		$result = pg_query($cn, "SELECT * FROM hotel join room on hotel.hotelID = room.hotelID join hotel_chain on hotel.hotel_chainID = hotel_chain.hotel_chainID");
 		$hotelchains = pg_fetch_all($result);
-		
-		
+		/*
+		echo "<br>";
+		echo "<br>";
+		print_r($hotelchains);
+		echo "<br>";
+		echo "<br>";
+		*/
 		$validrooms = array();
 		$validroomstemp = array();
 		foreach ($_POST['hotelsearch'] as $dumbkey => $toexplode){
@@ -271,8 +277,10 @@ function submitForm() {
 						if ($searchitem[1] == $thing){
 							$toadd = $curr['room_number']."-";
 							$toadd = $toadd.$curr['hotelid'];
+							/*
 							$toadd = $toadd."-";
 							$toadd = $toadd.$curr['hotel_chainid'];
+							*/
 							array_push($validroomstemp[$dumbkey], $toadd);
 						}
 					}
@@ -292,57 +300,74 @@ function submitForm() {
 			echo $toprint;
 			echo "<br>";
 		}
-		echo "<br>";
-		echo "Here is a list of compatible rooms in the form 'Room Number'-'Hotel ID'-'Hotel Chain ID'";
-		echo "<br>";
-		echo "<br>";
-		foreach ($validrooms as $curr){
-			echo $curr;		
-			echo "<br>";
-		}
-		echo "<br>";
-	}
-	if(isset($_POST['dateSearch'])){
-		$validrooms = array();
+		
+
+		/*date check*/
+		
+		$dvalidrooms = array();
 		$fvalidrooms = array();
 		$result = pg_query($cn, "SELECT * FROM archived_room");
 		$arooms = pg_fetch_all($result);
 		$result = pg_query($cn, "SELECT * FROM room");
-		$rooms = pg_fetch_all($result);
+		$drooms = pg_fetch_all($result);
 		$date = $_POST['book'];
 
 		foreach ($arooms as $key => $curr){
 			if ($curr['date_booked'] == $date){
 				$toadd = $curr['room_number']."-";
 				$toadd = $toadd.$curr['hotelid'];
-				array_push($validrooms, $toadd);
+				array_push($dvalidrooms, $toadd);
 			}
 		}
 
-		foreach ($rooms as $key => $curr){
-			foreach ($validrooms as $bkey => $remove){
+		foreach ($drooms as $key => $curr){
+			foreach ($dvalidrooms as $bkey => $remove){
 				$toadd = $curr['room_number']."-";
 				$toadd = $toadd.$curr['hotelid'];
 				if ($toadd == $remove){
-					unset($rooms[$key]);
+					unset($drooms[$key]);
 				} 
 			}
 		}
 		
-		foreach ($rooms as $key => $curr){
+		foreach ($drooms as $key => $curr){
 			$toadd = $curr['room_number']."-";
 			$toadd = $toadd.$curr['hotelid'];
 			array_push($fvalidrooms, $toadd);		
 		}
-		echo "Here is a list of rooms in the form 'Room Number'-'Hotel ID' available on ".$date;
+		/*
 		echo "<br>";
 		echo "<br>";
-		foreach ($fvalidrooms as $curr){
+		print_r($fvalidrooms);
+		echo "<br>";
+		print_r($validrooms);
+		echo "<br>";
+		echo "<br>";
+		*/
+		$finalrooms = array_intersect($fvalidrooms, $validrooms);
+		/*
+		foreach ($validrooms as $key => $curr){
+			if (
+		}*/
+		echo "<br>";
+		echo "<br>";
+		echo "Here is a list of compatible rooms in the form 'Room Number'-'Hotel ID' available on ".$date;
+		echo "<br>";
+		echo "<br>";
+		foreach ($finalrooms as $curr){
 			echo $curr;
 			echo "<br>";
 		}
+		if (empty($finalrooms)){
+			echo "No Rooms found. Try searching a different date or with more general criteria.";
+		}
 		echo "<br>";
+		
 	}
+	/*
+	if(isset($_POST['dateSearch'])){
+		
+	}*/
 	?>
 	
 	
