@@ -38,6 +38,11 @@
 	table, th, td {
 		border: 1px solid black;
 		border-collapse: collapse;}
+  .bigboi {
+        width: 150px;
+		height: 300px;
+        margin: 10px;
+    }
   </style>
   <button class="accordion">
     Employee<span class="accordion__indicator"></span>
@@ -92,6 +97,102 @@
 		echo "<br>";
 		print_r($roomsview);*/
 	  ?>
+	  Select rooms to switch between rented and booked (format is hotelid room_number availability): 
+<form action="" method="post">
+	
+	<select name="bookrent[]" multiple class="bigboi">
+	  <option value="">--BOOKED--</option>
+	  <?php
+        /*$alreadyAl = array();*/
+		$result = pg_query($cn, "SELECT * FROM archived_room");
+		$archrooms = pg_fetch_all($result);
+        
+        for($i = 0; $i < count($archrooms); $i++) {
+			if ($archrooms[$i]['availability'] == "booked"){
+				$test = strval($archrooms[$i]['hotelid'])."#";
+				$test = $test.strval($archrooms[$i]['room_number']);
+				$test = $test."#";
+				$test = $test.strval($archrooms[$i]['availability']);
+				$test = $test."#";
+				$test = $test.strval($archrooms[$i]['date_booked']);
+				
+				$not = strval($archrooms[$i]['hotelid'])." ";
+				$not = $not.strval($archrooms[$i]['room_number']);
+				$not = $not." ";
+				$not = $not.strval($archrooms[$i]['availability']);
+				/*if((in_array($test, $alreadyAl)) == False){*/
+				echo "<option value='$test'>$not</option>";
+				/*array_push($alreadyAl, $test);
+				}*/
+			}
+        }
+		?>
+		<option value="">--RENTED--</option>
+	  <?php
+        /*$alreadyAl = array();*/
+		$result = pg_query($cn, "SELECT * FROM archived_room");
+		$archrooms = pg_fetch_all($result);
+        
+        for($i = 0; $i < count($archrooms); $i++) {
+			if ($archrooms[$i]['availability'] == "rented"){
+				$test = strval($archrooms[$i]['hotelid'])."#";
+				$test = $test.strval($archrooms[$i]['room_number']);
+				$test = $test."#";
+				$test = $test.strval($archrooms[$i]['availability']);
+				$test = $test."#";
+				$test = $test.strval($archrooms[$i]['date_booked']);
+				
+				$not = strval($archrooms[$i]['hotelid'])." ";
+				$not = $not.strval($archrooms[$i]['room_number']);
+				$not = $not." ";
+				$not = $not.strval($archrooms[$i]['availability']);
+				/*if((in_array($test, $alreadyAl)) == False){*/
+				echo "<option value='$test'>$not</option>";
+				/*array_push($alreadyAl, $test);
+				}*/
+			}
+        }
+		?>
+		<input type="submit" value="Swap" name="sub">
+		
+		<?php
+			if(isset($_POST['sub']) ){
+				foreach ($_POST['bookrent'] as $dumbkey => $toexplode){
+					$toswap = explode("#", $toexplode);
+					if ($toswap[2] == 'booked'){
+						$yup = "UPDATE archived_room SET availability = 'rented' WHERE hotelid = $toswap[0] AND room_number = $toswap[1] AND date_booked = '$toswap[3]';";
+						pg_send_query($cn, $yup);
+					}else if ($toswap[2] == 'rented'){
+						$yup = "UPDATE archived_room SET availability = 'booked' WHERE hotelid = $toswap[0] AND room_number = $toswap[1] AND date_booked = '$toswap[3]';";
+						pg_send_query($cn, $yup);
+					}
+				}
+				pg_get_result($cn);
+			}
+		?>
+</form>
+	  <br>
+	  <br>
+	<table>
+
+                <tr>
+                    <th>Area</th>
+                    <th>Hotel Count</th>
+                </tr>
+                <?php
+                    foreach ($roomsview as $akey => $item)
+                    {
+                        ?>
+                        <tr>
+                            <td> <?php echo $item['area'];?></td>
+							<td> <?php echo $item['count']; ?></td>
+                        </tr>
+                    <?php
+					}
+                ?>	
+    </table>
+	<br>
+	<br>
 	<table>
 
                 <tr>
@@ -110,25 +211,8 @@
 					}
                 ?>	
   </table>
-  <br>
-  <table>
-
-                <tr>
-                    <th>Area</th>
-                    <th>Hotel Count</th>
-                </tr>
-                <?php
-                    foreach ($roomsview as $akey => $item)
-                    {
-                        ?>
-                        <tr>
-                            <td> <?php echo $item['area'];?></td>
-							<td> <?php echo $item['count']; ?></td>
-                        </tr>
-                    <?php
-					}
-                ?>	
-  </table>
+  
+  
   <br>
 	
 	
@@ -154,9 +238,8 @@ function submitForm() {
     <p>
 	Pick Your Options (Hold Ctrl while clicking for multiple):
 <form action="" method="post">
-	<select name="hotelsearch[]" multiple>
-	  <option value="">Select...</option>
-	  <option value="True">--HOTEL CHAINS--</option>
+	<select name="hotelsearch[]" multiple class="bigboi">
+	  <option value="">--HOTEL CHAINS--</option>
 	  <?php
         $alreadyA = array();
 		$result = pg_query($cn, "SELECT * FROM hotel_chain");
@@ -174,9 +257,9 @@ function submitForm() {
 				}
 			}
         }
-		print_r($alreadyA);
+		/*print_r($alreadyA);*/
 		?>
-		<option value="True">--HOTEL AREA--</option>
+		<option value="">--HOTEL AREA--</option>
 		<?php
 		$alreadyA = array();
 		$result = pg_query($cn, "SELECT * FROM hotel");
@@ -195,7 +278,7 @@ function submitForm() {
 			}
         }
 		?>
-		<option value="True">--CAPACITY--</option>
+		<option value="">--CAPACITY--</option>
 		<?php
 		$alreadyA = array();
 		$result = pg_query($cn, "SELECT * FROM room");
@@ -214,7 +297,7 @@ function submitForm() {
 			}
         }
         ?>
-		<option value="True">--PRICE--</option>
+		<option value="">--PRICE--</option>
 		<?php
 		$alreadyA = array();
 		$result = pg_query($cn, "SELECT * FROM room");
@@ -233,9 +316,11 @@ function submitForm() {
 			}
         }
         ?>
-		<option value="True">--VIEW--</option>
-		<option value="sea_view#true">Yes View</option>
-	    <option value="sea_view#false">No View</option>
+		<option value="">--VIEW--</option>
+		<option value="sea_view#true">Yes Sea View</option>
+	    <option value="sea_view#false">No Sea View</option>
+		<option value="mountain_view#true">Yes Mountain View</option>
+	    <option value="mountain_view#false">No Mountain View</option>
 	</select>
 	<br>
 	<br>
@@ -326,7 +411,7 @@ function submitForm() {
 				$toadd = $toadd.$curr['hotelid'];
 				if ($toadd == $remove){
 					unset($drooms[$key]);
-				} 
+				}
 			}
 		}
 		
@@ -368,7 +453,80 @@ function submitForm() {
 	if(isset($_POST['dateSearch'])){
 		
 	}*/
+
 	?>
+	
+	<br>
+	
+	    <h2>---Booking---</h2><br>
+    <h3>Enter the room details below</h3><br>
+
+    <label for="hotelid_room_book">Hotel Id:</label><br>
+    <input type="number" id="hotelid_room_book"><br>
+    <label for="roomNumber_book">Room Number:</label><br>
+    <input type="number" id="roomNumber_book"><br>
+    <label for="date_booked">Date to Book:</label><br>
+    <input type="number" id="date_booked"><br>
+
+    <h3>Enter your personal information</h3><br>
+
+    <label for="ssn_sin_book">SSN/SIN:</label><br>
+    <input type="number" id="ssn_sin_book"><br>
+    <label for="first_name_book">First Name:</label><br>
+    <input type="text" id="first_name_book"><br>
+    <label for="last_name_book">Last Name:</label><br>
+    <input type="text" id="last_name_book"><br>
+    <label for="address_book">Address:</label><br>
+    <input type="text" id="address_book"><br>
+<br>
+    <form method="post">
+        <input type="submit" name="insertbooking" value="Book"/>
+    </form>
+    <br>
+    <form method="post">
+        <input type="submit" name="deletebooking" value="Cancel Booking"/>
+    </form> 
+	
+	<br>
+	
+	<?php
+	
+	if(isset($_POST['insertBooking'])){
+            $hotelid = $_POST["hotelid_room_book"];
+            $room_number = $_POST["roomNumber_book"];
+            $date_booked = $_POST["date_booked"];
+            $ssn_sin = $_POST["ssn_sin_book"];
+            $first_name = $_POST["first_name_book"];
+            $last_name = $_POST["last_name_book"];
+            $address = $_POST["address_book"];
+
+            $sqlcustomer = "INSERT INTO customer (ssn_sin, first_name, last_name, address) VALUES ($ssn_sin, '$first_name', '$last_name', '$address')";
+        
+            $resultcustomer = pg_query($cn, $sqlcustomer);
+
+            $resultrow = pg_query_params($conn, "SELECT * FROM room WHERE hotelid=$hotelid AND room_number = $room_number");
+            $roomdata = pg_fetch($resultrow);
+
+            $sql = "INSERT INTO archived_room (hotelid, room_number, price, amenities, capacity, sea_view, mountain_view, date_booked) VALUES ($hotelid, $room_number, $roomdata[2], '$roomdata[3]', $roomdata[4], '$roomdata[5]', '$roomdata[6]', '$date_booked')";
+        
+            $result = pg_query($cn, $sql);
+
+            $sqlrents = "INSERT INTO rents (ssn_sin, hotelid, room_number, date_booked) VALUES ($ssn_sin, $hotelid, $room_number, '$datebooked')";
+        
+            $resultrents = pg_query($cn, $sqlrents);
+        }
+        if(isset($_POST['deleteBooking'])){
+            $hotelid = $_POST["hotelid_room_book"];
+            $room_number = $_POST["roomNumber_book"];
+            $date_booked = $_POST["date_booked"];
+
+            $sql = "DELETE FROM archived_room WHERE hotelid = $hotelid AND room_number = $room_number AND date_booked = $date_booked";
+            $result = pg_query($cn, $sql);
+        }
+	
+  ?>
+	
+	
 	
 	
   </div>
@@ -376,13 +534,18 @@ function submitForm() {
     Edit<span class="accordion__indicator"></span>
   </button>
   
-  
-  
-  
-  
-  
-  
   <div class="accordion-panel">
+  
+  
+  
+
+  
+
+  
+  
+  
+  
+  
 	<h3>Hotel insert/delete/update</h3>
 	<br>
 
@@ -420,7 +583,7 @@ function submitForm() {
 	<br>
 
 	<label for="ssn_sin_cust">SSN/SIN:</label><br>
-	<input type="number" id="ssn_sin_emp"><br>
+	<input type="number" id="ssn_sin_cust"><br>
 	<label for="first_name_cust">First Name:</label><br>
 	<input type="text" id="first_name_cust"><br>
 	<label for="last_name_cust">Last Name:</label><br>
@@ -595,12 +758,12 @@ function submitForm() {
 			$hotelid = $_POST["hotelid_room"];
 			$room_number = $_POST["roomNumber"];
 			$price = $_POST["price"];
-			$amenities = $_POST["amenitites"];
+			$amenities = $_POST["amenities"];
 			$capacity = $_POST["capacity"];
 			$sea_view = $_POST["seaView"];
 			$mountain_view = $_POST["mountView"];
 
-			$sql = "INSERT INTO room (hotelid, room_number, price, amenitites, capacity, sea_view, mountain_view) VALUES ($hotelid, $room_number, $price, '$amenities', $capacity, '$sea_view', '$mountain_view')";
+			$sql = "INSERT INTO room (hotelid, room_number, price, amenities, capacity, sea_view, mountain_view) VALUES ($hotelid, $room_number, $price, '$amenities', $capacity, '$sea_view', '$mountain_view')";
 		
 			$result = pg_query($cn, $sql);
 		}
@@ -790,7 +953,7 @@ function submitForm() {
 			$hotelid = $_POST["hotelid_room"];
 			$room_number = $_POST["roomNumber"];
 			$price = $_POST["price"];
-			$amenities = $_POST["amenitites"];
+			$amenities = $_POST["amenities"];
 			$capacity = $_POST["capacity"];
 			$sea_view = $_POST["seaView"];
 			$mountain_view = $_POST["mountView"];
