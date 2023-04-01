@@ -3,7 +3,6 @@ DROP VIEW IF EXISTS hotel_capacity CASCADE;
 DROP TABLE IF EXISTS manager CASCADE;
 DROP TABLE IF EXISTS rents CASCADE;
 DROP TABLE IF EXISTS works_for CASCADE;
-DROP TABLE IF EXISTS owns CASCADE;
 DROP TABLE IF EXISTS employee CASCADE;
 DROP TABLE IF EXISTS customer CASCADE;
 DROP TABLE IF EXISTS archived_room CASCADE;
@@ -94,18 +93,6 @@ CREATE TABLE employee (
 	first_name varchar(20) NOT NULL,
 	last_name varchar(20) NOT NULL,
 	PRIMARY KEY (SSN_SIN)
-);
-
-CREATE TABLE owns (
-	hotel_chainID int,
-	hotelID int UNIQUE,
-	CONSTRAINT fk_chain_name
-		FOREIGN KEY (hotel_chainID)
-			REFERENCES hotel_chain(hotel_chainID) ON UPDATE CASCADE ON DELETE CASCADE,
-	CONSTRAINT fk_hotelID
-		FOREIGN KEY (hotelID)
-			REFERENCES hotel(hotelID) ON UPDATE CASCADE ON DELETE CASCADE,
-	PRIMARY KEY(hotel_chainID,hotelID)
 );
 
 CREATE TABLE works_for (
@@ -254,7 +241,7 @@ CREATE FUNCTION one_manager() RETURNS trigger as $$
 		
 		/*SELECT COUNT(roles_positions) 
 			FROM (SELECT * FROM employee natural join works_for 
-			) as x WHERE (roles_positions = 'manager' AND hotelID = 1)
+			) as x WHERE (roles_positions = 'manager' AND hotelID = 0)
 			GROUP BY roles_positions;*/
 		--select * from employee natural join works_for where employee.roles_positions = 'manager';
 
@@ -263,7 +250,7 @@ CREATE FUNCTION one_manager() RETURNS trigger as $$
 			) as x WHERE (roles_positions = 'manager' AND hotelID = hotelIDNum)
 			GROUP BY roles_positions into result;
 
-		IF (result = 1) THEN
+		IF (result = 1 AND NEW.roles_positions = 'manager' AND OLD.roles_positions != 'manager') THEN
 			RAISE EXCEPTION 'Can only have one manager per hotel.';
 		ELSE
 			RETURN NEW;
@@ -298,7 +285,7 @@ CREATE FUNCTION set_manager() RETURNS trigger as $$
 	END;
 $$ LANGUAGE plpgsql;
 
-CREATE TRIGGER set_manager after insert on works_for FOR EACH ROW
+CREATE TRIGGER set_manager after update or insert on works_for FOR EACH ROW
 EXECUTE FUNCTION set_manager();
 
 --SELECT * FROM manager;
@@ -311,14 +298,7 @@ EXECUTE FUNCTION set_manager();
 --want manager_SSN from employee
 
 --Stored Procedures___________________________________________________________________________________
-DROP FUNCTION IF EXISTS add_owns(chainID int, hotelID int);
-CREATE FUNCTION add_owns(chainID int, hotelID int) RETURNS void LANGUAGE plpgsql as 
-$$
-declare
-	BEGIN
-		INSERT INTO owns(hotel_chainID, hotelID) VALUES(chainID,hotelID);
-	END;
-$$;
+
 
 DROP FUNCTION IF EXISTS add_works_for(hotelID int, SSN_SIN int);
 CREATE FUNCTION add_works_for(hotelID int, SSN_SIN int) RETURNS void LANGUAGE plpgsql as 
